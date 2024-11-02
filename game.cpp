@@ -2,6 +2,7 @@
 #include <conio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 #define BUFFER_SIZE 256
 
 struct Pos
@@ -17,7 +18,6 @@ struct world
     int mapNumbers;
     int mapSize;
     int **userMap = nullptr;
-    char **mapList = nullptr;
     Pos p;
 };
 
@@ -33,61 +33,6 @@ void cleanWorld(world *world)
                 free(world->userMap[i]);
         }
         free(world->userMap);
-    }
-}
-
-//*****************************************************************//
-void cleanMapList(world *world)
-{
-    if (world->mapList != NULL)
-    {
-        for (int j = 0; j < world->mapNumbers; j++)
-        {
-            if (world->mapList[j] != NULL)
-                free(world->mapList[j]);
-        }
-        free(world->mapList);
-    }
-}
-//*****************************************************************//
-void initMapList(world *world, const char *filepath)
-{
-    char buffer[BUFFER_SIZE];
-    char *line;
-    char *token;
-    const char *delimiter = ",";
-    const char *breaks = " ";
-
-    FILE *fstream = fopen(filepath, "r");
-    if (fstream == NULL)
-    {
-        printf("\nFile opening failed");
-        return;
-    }
-    line = fgets(buffer, sizeof(buffer), fstream);
-    if (line != NULL)
-    {
-        char *mapNumbers = strtok(line, breaks);
-        world->mapNumbers = atoi(mapNumbers);
-
-        world->mapList = (char **)malloc(world->mapNumbers * sizeof(char *));
-        for (int i = 0; i < world->mapNumbers; i++)
-        {
-            world->mapList[i] = (char *)malloc(256 * sizeof(char));
-        }
-        if (world->mapList != NULL)
-        {
-            int row_count = 0;
-            while ((line = fgets(buffer, sizeof(buffer), fstream)) != NULL)
-            {
-                line[strcspn(line, "\n")] = 0;
-                char *address = strtok(line, breaks);
-                world->mapList[row_count] = strdup(line);
-                row_count++;
-            }
-
-            fclose(fstream);
-        }
     }
 }
 
@@ -138,21 +83,27 @@ void getMapFile(world *world, const char *filepath)
         }
     }
 }
-
+//**************************************************************** */
+void resetPosition(world *world)
+{
+    world->p.x = 1;
+    world->p.y = 1;
+}
 //*****************************************************************//
 void loadMap(world *world)
 {
-    char *path = world->mapList[world->levelNumber];
+    char  temp[] ="test";  
+    char path[20];
+    sprintf(path, "%s%d.txt",temp, world->levelNumber);
     cleanWorld(world);
     getMapFile(world, path);
-    printf("\n loadMap %s", world->mapList[world->levelNumber]);
-    if ((world->levelNumber + 1) <= (world->mapNumbers - 1))
+    if ((world->levelNumber) < (3))
     {
         world->levelNumber++;
     }
     else
     {
-        world->levelNumber = 0;
+        world->levelNumber = 1;
     }
 }
 //*****************************************************************//
@@ -192,6 +143,7 @@ void translate_user_input(world *world, char input)
 
     if (world->userMap[new_row][new_col] == 2)
     {
+        resetPosition(world);
         loadMap(world);
         return;
     }
@@ -246,7 +198,6 @@ void display(world *world, int mapsize)
 //*****************************************************************//
 void render(world *world)
 {
-
     display(world, world->mapSize);
     char input = get_user_input();
     translate_user_input(world, input);
@@ -258,15 +209,12 @@ int main()
     world w;
     w.p.x = 1;
     w.p.y = 1;
-    w.levelNumber = 0;
-    const char *path = "listOfMaps.txt";
+    w.levelNumber = 1;
     cleanWorld(&w);
-    initMapList(&w, path);
     loadMap(&w);
     while (1)
     {
         render(&w);
     }
     cleanWorld(&w);
-    cleanMapList(&w);
 }
