@@ -219,8 +219,12 @@ void translate_user_input(world *world, char input)
     world->isFired = translate_user_fire(input);
     int new_col = world->p.x + translate_user_input_x(input);
     int new_row = world->p.y + translate_user_input_y(input);
-    
-    if (world->userMap[new_row][new_col] == 2)
+       if(world->isFired)
+    {    
+       setbulletPosition(world);
+      // displayFiring(world, world->mapSize);
+    }
+    if ((world->userMap[new_row][new_col] == 2 )|| (world->userMap[world->bulletPos.x][world->bulletPos.y] == 2))
     {
         resetPosition(world);
         loadMap(world);
@@ -231,11 +235,7 @@ void translate_user_input(world *world, char input)
         world->p.x = new_col;
         world->p.y = new_row;
     }
-    if(world->isFired)
-    {    
-       setbulletPosition(world);
-       displayFiring(world, world->mapSize);
-    }
+ 
     
 }
 
@@ -274,6 +274,12 @@ void display(world *world, int mapsize)
             else
             {
                 std::cout << "  ";
+            }
+              if (i == world->bulletPos.x && j== world->bulletPos.y)
+            {
+                std::cout << " -";
+                  pause(2);
+
             }
           
         }
