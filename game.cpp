@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <time.h>
+ 
 #define BUFFER_SIZE 256
 
 struct Pos
@@ -19,8 +21,19 @@ struct world
     int mapSize;
     int **userMap = nullptr;
     Pos p;
+    Pos lastPos;
+    Pos bulletPos;
+    bool isFired = false;
 };
 
+//*****************************************************************//
+void pause(int number_of_seconds)
+{
+    int milli_seconds = 1000 * number_of_seconds;
+    clock_t start_time = clock();
+    while (clock() < start_time + milli_seconds);
+
+}
 //*****************************************************************//
 void cleanWorld(world *world)
 {
@@ -121,6 +134,41 @@ int translate_user_input_x(char input)
 }
 
 //*****************************************************************//
+bool translate_user_fire(char input)
+{
+    if (input == 'x')
+    {
+        return true;
+    }
+    
+    return false;
+}
+
+//*****************************************************************//
+void setbulletPosition(world *world)
+{
+    int diffX = 0;
+    int diffY = 0;
+    if(world->p.x - world->lastPos.x > 0)
+    {
+        diffX = 1; 
+    }
+    else if(world->p.x - world->lastPos.x < 0)
+    {
+      diffX = -1; 
+    }
+     if(world->p.y - world->lastPos.y > 0)
+    {
+        diffY = 1; 
+    }
+    else if(world->p.y - world->lastPos.y < 0)
+    {
+      diffY = -1; 
+    }
+    world->bulletPos.x = world->p.x + diffX;
+    world->bulletPos.y = world->p.y + diffY;
+ }   
+//*****************************************************************//
 int translate_user_input_y(char input)
 {
     if (input == 'w')
@@ -134,13 +182,44 @@ int translate_user_input_y(char input)
 
     return 0;
 }
+//*****************************************************************//
+void displayFiring(world *world, int mapsize)
+{
+     int dimention = mapsize;
+     for (int i = 0; i < dimention; i++)
+    {
+        for (int j = 0; j < dimention; j++)
+        {
 
+             if (world->userMap[world->bulletPos.x][world->bulletPos.y] == 2)
+            {
+                 resetPosition(world);
+                 loadMap(world);
+                 return;
+            }
+             if (world->userMap[world->bulletPos.x][world->bulletPos.y]  == 0)
+            {
+                std::cout << " -";
+                  pause(10);
+
+            }
+            else if (world->userMap[world->bulletPos.x][world->bulletPos.y]  == 1)
+            {
+                break;
+            }
+      
+        }
+    }    
+}
 //*****************************************************************//
 void translate_user_input(world *world, char input)
 {
+    world->lastPos.x = world->p.x;
+    world->lastPos.y = world->p.y;
+    world->isFired = translate_user_fire(input);
     int new_col = world->p.x + translate_user_input_x(input);
     int new_row = world->p.y + translate_user_input_y(input);
-
+    
     if (world->userMap[new_row][new_col] == 2)
     {
         resetPosition(world);
@@ -152,6 +231,12 @@ void translate_user_input(world *world, char input)
         world->p.x = new_col;
         world->p.y = new_row;
     }
+    if(world->isFired)
+    {    
+       setbulletPosition(world);
+       displayFiring(world, world->mapSize);
+    }
+    
 }
 
 //*****************************************************************//
@@ -160,6 +245,7 @@ char get_user_input()
     char a = getch();
     return a;
 }
+
 
 //*****************************************************************//
 void display(world *world, int mapsize)
@@ -181,7 +267,6 @@ void display(world *world, int mapsize)
                 else
                     std::cout << " #";
             }
-
             else if (i == world->p.y && j == world->p.x)
             {
                 std::cout << " *";
@@ -190,6 +275,7 @@ void display(world *world, int mapsize)
             {
                 std::cout << "  ";
             }
+          
         }
         std::cout << std::endl;
     }
@@ -209,12 +295,15 @@ int main()
     world w;
     w.p.x = 1;
     w.p.y = 1;
+    w.bulletPos.x = 2;
+    w.bulletPos.y = 1;
     w.levelNumber = 1;
     cleanWorld(&w);
     loadMap(&w);
     while (1)
     {
         render(&w);
+ 
     }
     cleanWorld(&w);
 }
