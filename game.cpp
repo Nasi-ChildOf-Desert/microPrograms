@@ -275,10 +275,11 @@ void display(world *world, int mapsize)
             {
                 std::cout << "  ";
             }
-              if (i == world->bulletPos.x && j== world->bulletPos.y)
+              if (i == world->bulletPos.x && j== world->bulletPos.y && world->isFired)
             {
-                std::cout << " -";
-                  pause(2);
+                world->bulletPos.y++;
+                std::cout << "-";
+                  pause(1);
 
             }
           
@@ -301,8 +302,8 @@ int main()
     world w;
     w.p.x = 1;
     w.p.y = 1;
-    w.bulletPos.x = 2;
-    w.bulletPos.y = 1;
+    w.bulletPos.x = 1;
+    w.bulletPos.y = 2;
     w.levelNumber = 1;
     cleanWorld(&w);
     loadMap(&w);
